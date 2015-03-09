@@ -13,23 +13,23 @@ class Dataset
     @path
   end
 
-  def on_split_n(number_of_parts)
-    paths = SplitFile.new(@path).split_n(number_of_parts)
-    yield(paths.map { |p| Dataset.new(p) })
-  ensure
-    paths.each { |path| FileUtils.rm(path) }
+  def split_n(tmpdir, number_of_parts)
+    paths = SplitFile.new(tmpdir, @path).split_n(number_of_parts)
+    paths.map { |p| Dataset.new(p) }
   end
 
-  def on_split2(ratio)
-    paths = SplitFile.new(@path).split2(ratio)
-    yield(paths.map { |p| Dataset.new(p) })
-  ensure
-    paths.each { |path| FileUtils.rm(path) }
+  # @param [String] temporary directory path
+  # @param [Float] split size ratio
+  def split2(tmpdir, ratio)
+    paths = SplitFile.new(tmpdir, @path).split2(ratio)
+    paths.map { |p| Dataset.new(p) }
   end
 
-  def on_test_train
-    on_split2(0.7) do |paths|
-      yield(paths[0], paths[1])
-    end
+  # Ratio of the first path file size to the second one wil be 0.7
+  #
+  # @param [String] temporary directory path
+  # @yield [String, String] two parts of the split
+  def train_test(tmpdir)
+    split2(tmpdir, 0.7)
   end
 end

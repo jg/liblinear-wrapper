@@ -1,5 +1,8 @@
 class SplitFile
-  def initialize(path)
+  # @param [String] temporary directory path
+  # @param [String] path to the file that we need to split
+  def initialize(tmpdir, path)
+    @tmpdir = tmpdir
     @path = path
   end
 
@@ -18,9 +21,8 @@ class SplitFile
     basename = File.basename(@path)
     file1name = basename + ".part.1"
     file2name = basename + ".part.2"
-    basepath = File.dirname(@path)
-    path1 = File.join(basepath, file1name)
-    path2 = File.join(basepath, file2name)
+    path1 = File.join(@tmpdir, file1name)
+    path2 = File.join(@tmpdir, file2name)
     File.open(path1, 'w') { |f| f.write(file1) }
     File.open(path2, 'w') { |f| f.write(file2) }
 
@@ -42,7 +44,7 @@ class SplitFile
     basename = File.basename(@path)
     basepath = File.dirname(@path)
     filenames = (1..n).to_a.map { |k| basename + ".part.#{k}" }
-    paths = filenames.map { |name| File.join(basepath, name) }
+    paths = filenames.map { |name| File.join(@tmpdir, name) }
     
     filenames.each_with_index do |filename, i|
       File.open(paths[i], 'w') do |f|

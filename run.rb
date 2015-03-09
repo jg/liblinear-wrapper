@@ -6,6 +6,7 @@ require 'fileutils'
 require 'models/dataset'
 require 'models/model'
 require 'utils/shell'
+require 'tmpdir'
 
 
 class Experiment
@@ -15,9 +16,10 @@ class Experiment
   }
 
   def evaluate
-    DATASETS[:breast_cancer].on_test_train do |train, test|
-      model = Model.train(train)
-      model.predict(test)
+    Dir.mktmpdir do |tmpdir|
+      train, test = DATASETS[:breast_cancer].train_test(tmpdir)
+      model = Model.train(tmpdir, train)
+      model.predict(tmpdir, test)
     end
   end
 
