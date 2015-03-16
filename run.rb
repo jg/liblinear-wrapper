@@ -30,6 +30,24 @@ class Experiment
     end
   end
 
+  def train_one_vs_all
+    Dir.mktmpdir do |tmpdir|
+      train, test = DATASETS[:breast_cancer].train_test(tmpdir)
+
+      train.one_vs_all(tmpdir).each do |data|
+        puts "Training: #{data[:class]}"
+        model = Model.train(tmpdir, data[:dataset])
+        p = model.predict(tmpdir, test, data[:class])
+        puts p
+        puts "-------------------"
+        puts "| #{p.tp} #{p.fn} |"
+        puts "| #{p.fp} #{p.tn} |"
+        puts "-------------------"
+        puts "precision: #{p.precision}, recall #{p.recall}"
+      end
+    end
+  end
+
 
   # @params [Model] model
   def predict(model, training_set_file, options)

@@ -20,9 +20,9 @@ class Model
   end
 
   # @param [Dataset]
-  def predict(tmpdir, test)
+  def predict(tmpdir, test, positive_class)
     predictions_path = File.join(tmpdir, 'predictions')
     Shell.new.run("liblinear/predict #{test.path} #{@path} #{predictions_path}")
-    Predictions.new(predictions_path)
+    Predictions.new(test, predictions_path, positive_class)
   end
 end

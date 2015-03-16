@@ -42,7 +42,6 @@ class SplitFile
     end
 
     basename = File.basename(@path)
-    basepath = File.dirname(@path)
     filenames = (1..n).to_a.map { |k| basename + ".part.#{k}" }
     paths = filenames.map { |name| File.join(@tmpdir, name) }
     
@@ -74,4 +73,62 @@ class SplitFile
     ranges
   end
 
+  # Splits libsvm data file into two files per class. One containing
+  # the positive examples of class, the other one the negative ones.
+  #
+  # @return [Hash]
+  # Example:
+  # {
+  #   :class => 1
+  #   :positives => PATH
+  #   :negatives => PATH
+  # }
+  def split_into_classes
+    lines = File.read(@path).split("\n")
+
+    class_of_line = -> (line) { Integer(line.split(" ")[0]) }
+
+    classes = lines.map do |line|
+      class_of_line.call(line)
+    end.uniq
+
+    out = []
+    
+    classes.each do |class_number|
+      positives, negatives = lines.partition do |line|
+        class_of_line.call(line) == class_number
+      end
+
+      replace_class_number = -> (line, replacement) {
+        replacement + " " + line.split(" ").drop(1).join(" ")
+      }
+
+      basename = File.basename(@path)
+      path = File.join(@tmpdir, ".class.#{class_number}")
+
+      File.open(path, 'w') do |f|
+        # replace "positive" instance class numbers with 1
+        patched_positives = positives.map do |line|
+          replace_class_number.call(line, "1")
+        end
+
+        # replace "negative" instance class numbers with 0
+        patched_negatives = negatives.map do |line|
+          replace_class_number.call(line, "0")
+        end
+
+        all = patched_positives + patched_negatives
+        f.write(all.join("\n")) 
+      end
+
+      out << {
+        :class => class_number,
+        :path => path
+      }
+
+      return out if classes.size == 2
+    end
+
+    out
+  end
 end
