@@ -2,23 +2,37 @@
 class Predictions
   # @param [Dataset] testing dataset
   # @param [String] predictions file path
-  def initialize(train, path, positive_class)
-    predictions = File.read(path).split("\n").map(&:to_i)
-    actual =
-      begin
-        classes =
-          File.read('datasets/breast-cancer').split("\n").map do |l|
-            l.split(" ")[0].to_i
-          end
-        classes.map { |c| c == positive_class ? 1 : 0 }
-      end
+  def initialize(test, predictions_path, positive_class)
+    predictions = File.read(predictions_path).split("\n").map(&:to_i)
+    actual = test.lines.map do |line|
+      line.split(" ")[0].to_i
+    end
     @zipped = predictions.zip(actual)
   end
 
   def to_s
     @zipped.map do |prediction, actual|
-      "#{prediction} (#{actual})"
+      fmt = "%2d"
+      p = fmt % prediction
+      a = fmt % actual
+      "#{p} (#{a})"
     end.join("\n")
+  end
+
+  def add_plus(prediction)
+    prediction > 0 ? "+#{prediction}" : prediction
+  end
+
+  def confusion_matrix
+    fmt = "%4d"
+    a = fmt % tp
+    b = fmt % fn
+    c = fmt % fp
+    d = fmt % tn
+    ["------------",
+    "| #{a} #{b} |",
+    "| #{c} #{d} |",
+    "-------------"].join("\n")
   end
 
   def tp

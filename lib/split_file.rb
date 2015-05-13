@@ -103,22 +103,22 @@ class SplitFile
         replacement + " " + line.split(" ").drop(1).join(" ")
       }
 
-      basename = File.basename(@path)
-      path = File.join(@tmpdir, ".class.#{class_number}")
+      basename = File.basename(@path).split('.')[0]
+      path = File.join(@tmpdir, "#{basename}.class.#{class_number}")
 
       File.open(path, 'w') do |f|
-        # replace "positive" instance class numbers with 1
+        # replace "positive" instance class numbers with +1
         patched_positives = positives.map do |line|
-          replace_class_number.call(line, "1")
+          replace_class_number.call(line, "+1")
         end
 
-        # replace "negative" instance class numbers with 0
+        # replace "negative" instance class numbers with -1
         patched_negatives = negatives.map do |line|
-          replace_class_number.call(line, "0")
+          replace_class_number.call(line, "-1")
         end
 
         all = patched_positives + patched_negatives
-        f.write(all.join("\n")) 
+        f.write(all.shuffle.join("\n"))
       end
 
       out << {

@@ -9,6 +9,12 @@ class Dataset
     File.basename(@path)
   end
 
+
+  # @return [Array<String>] array of examples
+  def lines
+    File.read(@path).split("\n")
+  end
+
   def path
     @path
   end
